@@ -1,74 +1,37 @@
 'use strict';
 
 angular.module('twittexpressApp')
-.service('tweetservice', function ($http,$interval) {
+.service('tweetservice', function ($http, CONFIG, $websocket) {
+    var ws;
+    function init () {
+        ws = $websocket.$new('ws://' + CONFIG.host + ':' + CONFIG.port);
 
-    var time;
-    var age;
-    var ts;
+        ws.$on('$open', function(){
+            console.log('the websocket is opened');
 
-      var called = 0;
-      $interval(function () {
-          called++;
-          console.log('called',called);
-      }, 1000);
+            //TODO:
+            // - emit a tweet list request to the server with
+            //   no params
+            // - store the tweets in a list of tweets1
 
-
-
-     var prueba = function(callback){
-
-        $interval(function(){
-            searchData('algo')
-              .then(
-                function(response){
-
-                  callback(response.data);
-                });
-
-        }, 1000);
-    }
-
-    var searchData = function(query, since) {
-        var data = {query: query};
-
-        var queryUrl = '/search';
-        var promise = $http.post(queryUrl, data)
-            .then(function (response) {
-            return response;
         });
-        console.log('un mensaje');
-        return promise;
-    }
 
+        ws.$on('$new_tweets', function(){
+          //TODO
+          // - pedir la lista de tweets o tal vez ya vienen como parametro?
+        });
+    }
 
     return {
+        init: init,
+        asyncSearch: function(query, since) {
+            var data = {query: query};
 
-        getCalled : function () {
-            return called;
-        },
-
-        init:function(options){
-            if(options.time && options.age){
-                time = options.time;
-                age = options.age;
-                return true
-            }else{
-                return false;
-            }
-
-        },
-
-        consult:function(callback){
-            $interval(function(){
-                searchData('algo')
-                .then(
-                    function(response){
-                    callback(response.data);
-                    });
-                }, 1000);
-        /*consult:searchData*/
-        },
-
-        asyncSearch: searchData
+            var queryUrl = '/search';
+            var promise = $http.post(queryUrl, data).then(function (response) {
+                return response;
+            });
+            return promise;
+        }
     };
 });
